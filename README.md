@@ -98,8 +98,10 @@ flowchart LR
 ## DB Model Plan:
 
 ```mermaid
-erDiagram
-    WEATHER_MODEL {
+classDiagram
+    direction LR
+
+    class WEATHER_MODEL {
         bigint id
         varchar name
         varchar source
@@ -109,17 +111,7 @@ erDiagram
         timestamptz datemodified
     }
 
-    GRID_POINT {
-        bigint id
-        double latitude
-        double longitude
-        real elevation_m
-        geometry location
-        timestamptz datein
-        timestamptz datemodified
-    }
-
-    FORECAST_RUN {
+    class FORECAST_RUN {
         bigint id
         bigint weather_model_id
         timestamptz initialized_at
@@ -128,7 +120,7 @@ erDiagram
         timestamptz datemodified
     }
 
-    FORECAST {
+    class FORECAST {
         bigint id
         bigint forecast_run_id
         bigint grid_point_id
@@ -146,7 +138,17 @@ erDiagram
         timestamptz datemodified
     }
 
-    OBSERVATION {
+    class GRID_POINT {
+        bigint id
+        double latitude
+        double longitude
+        real elevation_m
+        geometry location
+        timestamptz datein
+        timestamptz datemodified
+    }
+
+    class OBSERVATION {
         bigint id
         bigint grid_point_id
         timestamptz observed_at
@@ -163,7 +165,7 @@ erDiagram
         timestamptz datemodified
     }
 
-    ML_MODEL {
+    class ML_MODEL {
         bigint id
         varchar name
         varchar version
@@ -180,7 +182,7 @@ erDiagram
         timestamptz datemodified
     }
 
-    ML_PREDICTION {
+    class ML_PREDICTION {
         bigint id
         bigint ml_model_id
         bigint grid_point_id
@@ -194,11 +196,23 @@ erDiagram
         timestamptz datemodified
     }
 
-    WEATHER_MODEL ||--o{ FORECAST_RUN : weather_model_id
-    FORECAST_RUN ||--o{ FORECAST : forecast_run_id
-    GRID_POINT ||--o{ FORECAST : grid_point_id
-    GRID_POINT ||--o{ OBSERVATION : grid_point_id
-    GRID_POINT ||--o{ ML_PREDICTION : grid_point_id
-    ML_MODEL ||--o{ ML_PREDICTION : ml_model_id
-    FORECAST ||--o{ ML_PREDICTION : source_forecast_id
+
+    WEATHER_MODEL "1" --> "*" FORECAST_RUN : weather_model_id
+    FORECAST_RUN "1" --> "*" FORECAST : forecast_run_id
+
+    GRID_POINT "1" --> "*" FORECAST : grid_point_id
+    GRID_POINT "1" --> "*" OBSERVATION : grid_point_id
+
+    ML_MODEL "1" --> "*" ML_PREDICTION : ml_model_id
+    GRID_POINT "1" --> "*" ML_PREDICTION : grid_point_id
+    FORECAST "1" --> "*" ML_PREDICTION : source_forecast_id
+
+
+    classDef forecastData fill:#dbeafe,stroke:#2563eb,color:#172554,stroke-width:2px
+    classDef geographicData fill:#dcfce7,stroke:#16a34a,color:#052e16,stroke-width:2px
+    classDef machineLearning fill:#f3e8ff,stroke:#9333ea,color:#3b0764,stroke-width:2px
+
+    cssClass "WEATHER_MODEL,FORECAST_RUN,FORECAST" forecastData
+    cssClass "GRID_POINT,OBSERVATION" geographicData
+    cssClass "ML_MODEL,ML_PREDICTION" machineLearning
 ```
