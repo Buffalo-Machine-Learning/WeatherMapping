@@ -99,61 +99,106 @@ flowchart LR
 
 ```mermaid
 erDiagram
-    WEATHER_MODEL ||--o{ FORECAST_RUN : produces
-    FORECAST_RUN ||--o{ FORECAST : contains
-    GRID_POINT ||--o{ FORECAST : has
-    GRID_POINT ||--o{ OBSERVATION : records
-    GRID_POINT ||--o{ ML_PREDICTION : receives
-
     WEATHER_MODEL {
-        int id
-        string name
-        string source
-        float resolution_km
-    }
-
-    FORECAST_RUN {
         bigint id
-        int model_id
-        datetime initialized_at
-        datetime ingested_at
+        varchar name
+        varchar source
+        real resolution_km
+        text description
+        timestamptz datein
+        timestamptz datemodified
     }
 
     GRID_POINT {
         bigint id
-        float latitude
-        float longitude
+        double latitude
+        double longitude
+        real elevation_m
         geometry location
-        float elevation_m
+        timestamptz datein
+        timestamptz datemodified
+    }
+
+    FORECAST_RUN {
+        bigint id
+        bigint weather_model_id
+        timestamptz initialized_at
+        timestamptz ingested_at
+        timestamptz datein
+        timestamptz datemodified
     }
 
     FORECAST {
-        bigint run_id
+        bigint id
+        bigint forecast_run_id
         bigint grid_point_id
-        datetime valid_at
+        timestamptz valid_at
         int lead_hours
-        float temperature_c
-        float precipitation_mm
-        float pressure_hpa
-        float wind_speed_ms
-        float cloud_cover
+        real temperature_c
+        real dew_point_c
+        real relative_humidity
+        real precipitation_mm
+        real pressure_hpa
+        real wind_speed_ms
+        real wind_direction_deg
+        real cloud_cover
+        timestamptz datein
+        timestamptz datemodified
     }
 
     OBSERVATION {
+        bigint id
         bigint grid_point_id
-        datetime observed_at
-        float temperature_c
-        float precipitation_mm
-        float pressure_hpa
-        float wind_speed_ms
+        timestamptz observed_at
+        real temperature_c
+        real dew_point_c
+        real relative_humidity
+        real precipitation_mm
+        real pressure_hpa
+        real wind_speed_ms
+        real wind_direction_deg
+        real cloud_cover
+        varchar source
+        timestamptz datein
+        timestamptz datemodified
+    }
+
+    ML_MODEL {
+        bigint id
+        varchar name
+        varchar version
+        varchar model_type
+        varchar target_variable
+        timestamptz training_start_date
+        timestamptz training_end_date
+        real mae
+        real rmse
+        real r_squared
+        text model_path
+        text description
+        timestamptz datein
+        timestamptz datemodified
     }
 
     ML_PREDICTION {
-        string model_version
+        bigint id
+        bigint ml_model_id
         bigint grid_point_id
-        datetime issued_at
-        datetime valid_at
-        float predicted_temperature_c
-        float predicted_precipitation_mm
+        bigint source_forecast_id
+        timestamptz issued_at
+        timestamptz valid_at
+        real predicted_temperature_c
+        real predicted_precipitation_mm
+        real predicted_error_temperature_c
+        timestamptz datein
+        timestamptz datemodified
     }
+
+    WEATHER_MODEL ||--o{ FORECAST_RUN : weather_model_id
+    FORECAST_RUN ||--o{ FORECAST : forecast_run_id
+    GRID_POINT ||--o{ FORECAST : grid_point_id
+    GRID_POINT ||--o{ OBSERVATION : grid_point_id
+    GRID_POINT ||--o{ ML_PREDICTION : grid_point_id
+    ML_MODEL ||--o{ ML_PREDICTION : ml_model_id
+    FORECAST ||--o{ ML_PREDICTION : source_forecast_id
 ```
